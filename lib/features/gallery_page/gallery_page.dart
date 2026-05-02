@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nasa_app/common/constants/app_colors.dart';
 import 'package:nasa_app/common/constants/app_text_styles.dart';
+import 'package:nasa_app/features/gallery_page/gallery_detail_page.dart';
 import 'package:nasa_app/features/home_page/home_page.dart';
 import 'package:nasa_app/service/nasa_service.dart';
 import 'package:nasa_app/widgets/custom_form_field.dart';
@@ -16,8 +17,6 @@ class GalleryPage extends StatefulWidget {
 class _GalleryPageState extends State<GalleryPage> {
   late Future<List<dynamic>> _nasaPhotos;
   final TextEditingController _searchController = TextEditingController();
-
-  bool _isLoadinImages = true;
 
   @override
   void initState() {
@@ -89,12 +88,11 @@ class _GalleryPageState extends State<GalleryPage> {
               child: FutureBuilder<List<dynamic>>(
                 future: _nasaPhotos,
                 builder: (context, snapshot) {
+                  final bool isLoading =
+                      snapshot.connectionState == ConnectionState.waiting;
+
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    _isLoadinImages = !_isLoadinImages;
                   }
 
                   if (snapshot.hasError) {
@@ -137,74 +135,89 @@ class _GalleryPageState extends State<GalleryPage> {
                       final item = items[index];
                       final String imageUrl = item['links'][0]['href'];
                       final String title = item['data'][0]['title'];
-                      return Container(
-                        margin: EdgeInsets.only(bottom: 20),
-                        decoration: BoxDecoration(
-                          borderRadius: .circular(20),
-                          color: AppColors.grey,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: .stretch,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    width: 3,
-                                    color: AppColors.blueSecondary,
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GalleryDetailPage(
+                                item: item,
+                                imageUrl: imageUrl,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            borderRadius: .circular(20),
+                            color: AppColors.grey,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: .stretch,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      width: 3,
+                                      color: AppColors.blueSecondary,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: .vertical(top: .circular(20)),
-                                child: Skeletonizer(
-                                  enabled: _isLoadinImages,
-                                  child: Image.network(
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                          if (loadingProgress == null) return child;
+                                child: ClipRRect(
+                                  borderRadius: .vertical(top: .circular(20)),
+                                  child: Skeletonizer(
+                                    enabled: isLoading,
+                                    child: Image.network(
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
 
-                                          return SizedBox(
-                                            height: 250,
-                                            child: Center(
-                                              child: SizedBox(
-                                                height: 30,
-                                                child: CircularProgressIndicator(
-                                                  value:
-                                                      loadingProgress
-                                                              .expectedTotalBytes !=
-                                                          null
-                                                      ? loadingProgress
-                                                                .cumulativeBytesLoaded /
-                                                            loadingProgress
-                                                                .expectedTotalBytes!
-                                                      : null,
-                                                ),
+                                        return SizedBox(
+                                          height: 250,
+                                          child: Center(
+                                            child: SizedBox(
+                                              height: 30,
+                                              child: CircularProgressIndicator(
+                                                value:
+                                                    loadingProgress
+                                                            .expectedTotalBytes !=
+                                                        null
+                                                    ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                          loadingProgress
+                                                              .expectedTotalBytes!
+                                                    : null,
                                               ),
                                             ),
-                                          );
-                                        },
-                                    imageUrl,
-                                    height: 250,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                        Icon(Icons.broken_image),
+                                          ),
+                                        );
+                                      },
+                                      imageUrl,
+                                      height: 250,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Icon(Icons.broken_image),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            Padding(
-                              padding: .all(12),
-                              child: Text(
-                                title,
-                                style: AppTextStyles.titleAppBar.copyWith(
-                                  fontSize: 14,
+                              Padding(
+                                padding: .all(12),
+                                child: Text(
+                                  title,
+                                  style: AppTextStyles.titleAppBar.copyWith(
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },

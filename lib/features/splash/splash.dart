@@ -14,9 +14,9 @@ class _SplashState extends State<Splash> {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
       }
     });
   }
@@ -33,7 +33,7 @@ class _SplashState extends State<Splash> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Color.fromRGBO(0, 0, 0, 0.08),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -47,11 +47,6 @@ class _SplashState extends State<Splash> {
               fit: BoxFit.contain,
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
         ),
       ),
     );
