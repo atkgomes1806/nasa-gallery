@@ -1,6 +1,7 @@
-import 'dart:ui';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:nasa_app/common/constants/app_colors.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:nasa_app/features/home_page/home_page.dart';
 
 class Splash extends StatefulWidget {
@@ -10,85 +11,66 @@ class Splash extends StatefulWidget {
   State<Splash> createState() => _SplashState();
 }
 
-class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
+class _SplashState extends State<Splash> {
+  ui.Image? _firstFrame;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-    
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 1.0,
-          end: 1.2,
-        ).chain(CurveTween(curve: Curves.easeOut)),
-        weight: 70,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 1.2,
-          end: 1.0,
-        ).chain(CurveTween(curve: Curves.easeIn)),
-        weight: 30,
-      ),
-    ]).animate(_controller);
-
-    _controller.forward().then((_) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context)=>HomePage())
-      );
+    _loadFirstFrame();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
+      }
     });
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Future<void> _loadFirstFrame() async {
+    try {
+      final ByteData data = await rootBundle.load(
+        'assets/images/nasa_logo.gif',
+      );
+      final Uint8List bytes = data.buffer.asUint8List();
+      final ui.Codec codec = await ui.instantiateImageCodec(bytes);
+      final ui.FrameInfo frameInfo = await codec.getNextFrame();
+      setState(() {
+        _firstFrame = frameInfo.image;
+      });
+    } catch (_) {
+      // se falhar, não quebra a tela; imagem ficará nula até Image.asset carregar
+      setState(() => _firstFrame = null);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: AppColors.blueGradient,
-          ),
-        ),
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                child: ColorFiltered(
-                  colorFilter: ColorFilter.mode(
-                    AppColors.black.withAlpha(40),
-                    BlendMode.srcIn,
-                  ),
-                  child: Image.asset(
-                    'assets/images/nasa_logo.png',
-                    width: 320,
-                    height: 320,
-                  ),
-                ),
-              ),
-              Image.asset(
-                'assets/images/nasa_logo.png',
-                width: 300,
-                height: 300,
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
             ],
+          ),
+          child: SizedBox(
+            width: 320,
+            height: 320,
+            child: _firstFrame != null
+                ? RawImage(image: _firstFrame, fit: BoxFit.contain)
+                : Image.asset(
+                    'assets/images/nasa_logo.gif',
+                    fit: BoxFit.contain,
+                  ),
           ),
         ),
       ),
