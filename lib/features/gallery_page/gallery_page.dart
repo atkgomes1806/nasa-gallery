@@ -92,7 +92,19 @@ class _GalleryPageState extends State<GalleryPage> {
                       snapshot.connectionState == ConnectionState.waiting;
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: 5,
+                      itemBuilder: (context, index) {
+                        return const Padding(
+                          padding: EdgeInsets.only(bottom: 20),
+                          child: Skeletonizer(
+                            enabled: true,
+                            child: _GallerySkeletonCard(),
+                          ),
+                        );
+                      },
+                    );
                   }
 
                   if (snapshot.hasError) {
@@ -129,7 +141,7 @@ class _GalleryPageState extends State<GalleryPage> {
                   }
 
                   return ListView.builder(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     itemCount: items.length,
                     itemBuilder: (context, index) {
                       final item = items[index];
@@ -150,11 +162,11 @@ class _GalleryPageState extends State<GalleryPage> {
                         child: Container(
                           margin: EdgeInsets.only(bottom: 20),
                           decoration: BoxDecoration(
-                            borderRadius: .circular(20),
+                            borderRadius: BorderRadius.circular(20),
                             color: AppColors.grey,
                           ),
                           child: Column(
-                            crossAxisAlignment: .stretch,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Container(
                                 decoration: BoxDecoration(
@@ -166,35 +178,12 @@ class _GalleryPageState extends State<GalleryPage> {
                                   ),
                                 ),
                                 child: ClipRRect(
-                                  borderRadius: .vertical(top: .circular(20)),
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(20),
+                                  ),
                                   child: Skeletonizer(
                                     enabled: isLoading,
                                     child: Image.network(
-                                      loadingBuilder: (context, child, loadingProgress) {
-                                        if (loadingProgress == null) {
-                                          return child;
-                                        }
-
-                                        return SizedBox(
-                                          height: 250,
-                                          child: Center(
-                                            child: SizedBox(
-                                              height: 30,
-                                              child: CircularProgressIndicator(
-                                                value:
-                                                    loadingProgress
-                                                            .expectedTotalBytes !=
-                                                        null
-                                                    ? loadingProgress
-                                                              .cumulativeBytesLoaded /
-                                                          loadingProgress
-                                                              .expectedTotalBytes!
-                                                    : null,
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
                                       imageUrl,
                                       height: 250,
                                       fit: BoxFit.cover,
@@ -206,7 +195,7 @@ class _GalleryPageState extends State<GalleryPage> {
                                 ),
                               ),
                               Padding(
-                                padding: .all(12),
+                                padding: const EdgeInsets.all(12),
                                 child: Text(
                                   title,
                                   style: AppTextStyles.titleAppBar.copyWith(
@@ -223,6 +212,63 @@ class _GalleryPageState extends State<GalleryPage> {
                     },
                   );
                 },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GallerySkeletonCard extends StatelessWidget {
+  const _GallerySkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.grey,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(height: 250, color: AppColors.grey),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 14,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppColors.grey,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 12,
+                    width: 180,
+                    decoration: BoxDecoration(
+                      color: AppColors.grey,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 12,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      color: AppColors.grey,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
